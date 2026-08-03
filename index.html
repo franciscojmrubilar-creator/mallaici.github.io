@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Malla Interactiva · Ingeniería Civil Industrial</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#14233d;
+    --navy-2:#1c3157;
+    --paper:#f4f2ec;
+    --grid-line:#dcd6c8;
+    --ink:#1c1f26;
+    --muted:#5b6472;
+    --line:#c7cdd6;
+    --stamp-green:#2f6f4f;
+    --stamp-green-bg:#e7f2ea;
+    --accent:#c9622e;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      repeating-linear-gradient(0deg, var(--grid-line) 0 1px, transparent 1px 28px),
+      repeating-linear-gradient(90deg, var(--grid-line) 0 1px, transparent 1px 28px),
+      var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+  }
+  header{
+    background:var(--navy);
+    color:#fff;
+    padding:22px 20px 26px;
+    border-bottom:4px solid var(--accent);
+  }
+  .title-block{max-width:920px;margin:0 auto;}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:#9fb0c9;
+    margin:0 0 6px;
+  }
+  h1{
+    margin:0 0 4px;
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:clamp(20px,3vw,28px);
+    letter-spacing:-.01em;
+  }
+  .subtitle{margin:0 0 20px;color:#c3cee0;font-size:13.5px;}
+  .meters{display:flex;flex-direction:column;gap:14px;}
+  .meter-row{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;margin-bottom:6px;}
+  .meter-row .label{color:#c3cee0;}
+  .meter-row .value{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;}
+  .ruler{
+    position:relative;
+    height:16px;
+    background:#0c1729;
+    border:1px solid #33456a;
+    border-radius:2px;
+    overflow:hidden;
+  }
+  .ruler .fill{
+    height:100%;
+    background:linear-gradient(90deg,var(--stamp-green),#4c9a70);
+    width:0%;
+    transition:width .5s ease;
+  }
+  .ruler .ticks{position:absolute;inset:0;display:flex;pointer-events:none;}
+  .ruler .ticks span{flex:1;border-right:1px solid rgba(255,255,255,.14);}
+  .ruler .ticks span:last-child{border-right:none;}
+
+  main{padding:22px 12px 60px;overflow-x:auto;}
+  .grid{display:flex;gap:10px;min-width:max-content;padding:0 8px;}
+  .col{width:150px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;}
+  .col-head{
+    background:var(--navy-2);
+    color:#fff;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    text-align:center;
+    padding:8px 4px;
+    border-radius:3px 3px 0 0;
+    position:relative;
+  }
+  .col-head small{display:block;font-family:'Inter',sans-serif;color:#9fb0c9;font-weight:400;font-size:10px;margin-top:2px;letter-spacing:0;}
+
+  .card{
+    position:relative;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:10px 10px 9px;
+    cursor:pointer;
+    user-select:none;
+    transition:transform .15s ease, box-shadow .15s ease, background .2s ease;
+    overflow:hidden;
+  }
+  .card:hover{transform:translateY(-2px);box-shadow:0 5px 14px rgba(20,35,61,.14);}
+  .card:active{transform:translateY(0);}
+  .card .name{font-size:12px;font-weight:600;line-height:1.28;margin-bottom:8px;min-height:31px;}
+  .card .foot{display:flex;justify-content:space-between;align-items:center;}
+  .card .code{font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted);letter-spacing:.02em;}
+  .card .credits{
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;
+    font-weight:700;
+    background:#eef0f4;
+    color:var(--navy);
+    padding:2px 6px;
+    border-radius:3px;
+  }
+
+  .card.passed{background:var(--stamp-green-bg);border-color:#a9d2b9;}
+  .card.passed .credits{background:var(--stamp-green);color:#fff;}
+  .card.passed .code{color:#3f7b5b;}
+  .stamp{
+    position:absolute;
+    top:6px;
+    right:-16px;
+    transform:rotate(18deg);
+    font-family:'JetBrains Mono',monospace;
+    font-size:8.5px;
+    font-weight:700;
+    letter-spacing:.08em;
+    color:var(--stamp-green);
+    border:1.5px solid var(--stamp-green);
+    padding:1px 14px;
+    border-radius:3px;
+    opacity:0;
+    transition:opacity .2s ease;
+    background:rgba(255,255,255,.6);
+  }
+  .card.passed .stamp{opacity:.9;}
+
+  footer{
+    max-width:920px;
+    margin:0 auto;
+    padding:0 20px 40px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+  }
+  .legend{display:flex;gap:16px;font-size:12px;color:var(--muted);flex-wrap:wrap;}
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .dot{width:10px;height:10px;border-radius:2px;display:inline-block;}
+  .dot.pending{background:#fff;border:1px solid var(--line);}
+  .dot.passed{background:var(--stamp-green);}
+  button#reset{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:.05em;
+    background:none;
+    border:1px solid var(--line);
+    color:var(--muted);
+    padding:7px 12px;
+    border-radius:4px;
+    cursor:pointer;
+  }
+  button#reset:hover{border-color:var(--accent);color:var(--accent);}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-block">
+    <p class="eyebrow">Universidad · U.A. 54 · Plan 4 — 2011</p>
+    <h1>Ingeniería Civil Industrial</h1>
+    <p class="subtitle">Haz clic en un ramo para marcarlo como aprobado. Tu avance se guarda en este navegador.</p>
+    <div class="meters">
+      <div>
+        <div class="meter-row"><span class="label">Créditos aprobados</span><span class="value" id="credits-count">0 / 366</span></div>
+        <div class="ruler"><div class="fill" id="credits-bar"></div><div class="ticks" id="credit-ticks"></div></div>
+      </div>
+      <div>
+        <div class="meter-row"><span class="label">Avance de la carrera</span><span class="value" id="progress-percent">0%</span></div>
+        <div class="ruler"><div class="fill" id="percent-bar"></div><div class="ticks" id="percent-ticks"></div></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="grid" id="malla-grid"></div>
+</main>
+
+<footer>
+  <div class="legend">
+    <span><i class="dot pending"></i> Pendiente</span>
+    <span><i class="dot passed"></i> Aprobado</span>
+  </div>
+  <button id="reset">Reiniciar avance</button>
+</footer>
+
+<script>
+const COURSES = [
+  // Semestre I
+  {code:"IN1001C",name:"Álgebra",credits:8,sem:1},
+  {code:"IN1002C",name:"Cálculo I",credits:8,sem:1},
+  {code:"IN1040C",name:"Intro. a la Ing. Industrial",credits:10,sem:1},
+  {code:"TE0007C",name:"Fundamentos Filosóficos",credits:4,sem:1},
+  // Semestre II
+  {code:"CS0002C",name:"Química",credits:6,sem:2},
+  {code:"IN1004C",name:"Álgebra Lineal",credits:7,sem:2},
+  {code:"IN1005C",name:"Cálculo II",credits:7,sem:2},
+  {code:"IN1046C",name:"Comunicación Ingenieril",credits:6,sem:2},
+  {code:"TE0008C",name:"Fundamentos Teológicos",credits:4,sem:2},
+  // Semestre III
+  {code:"IN1009C",name:"Cálculo III",credits:7,sem:3},
+  {code:"IN1053C",name:"Estática y Dinámica",credits:7,sem:3},
+  {code:"IN1062C",name:"Probabilidades y Estadística",credits:7,sem:3},
+  {code:"IN1088C",name:"Programación Aplicada",credits:6,sem:3},
+  {code:"TE0009C",name:"Doctrina Social de la Iglesia",credits:4,sem:3},
+  // Semestre IV
+  {code:"IN1008C",name:"Ecuaciones Diferenciales",credits:7,sem:4},
+  {code:"IN1066C",name:"Termodinámica",credits:6,sem:4},
+  {code:"IN1061C",name:"Modelamiento Matemático",credits:6,sem:4},
+  {code:"IN1089C",name:"Análisis Multivariado",credits:6,sem:4},
+  {code:"TE0010C",name:"Ética Empresarial y Social",credits:4,sem:4},
+  // Semestre V
+  {code:"IN1068C",name:"Electromagnetismo y Circuitos",credits:7,sem:5},
+  {code:"IN1090C",name:"Mec. de Cuerpos Rígidos y Fluidos",credits:6,sem:5},
+  {code:"IN1091C",name:"Modelos de Pronósticos",credits:6,sem:5},
+  {code:"IN1058C",name:"Investigación de Operaciones",credits:6,sem:5},
+  {code:"ED0021C",name:"Inglés I",credits:6,sem:5},
+  // Semestre VI
+  {code:"IN1092C",name:"Electrón. Indust. y Automatización",credits:6,sem:6},
+  {code:"IN1093C",name:"Proc. Químicos y Térmicos",credits:6,sem:6},
+  {code:"IN1064C",name:"Mod. Estocásticos y Simulación",credits:6,sem:6},
+  {code:"EC0003C",name:"Economía",credits:6,sem:6},
+  {code:"ED0022C",name:"Inglés II",credits:6,sem:6},
+  // Semestre VII
+  {code:"IN1094C",name:"Procesos Mecánicos",credits:6,sem:7},
+  {code:"IN1059C",name:"Gestión de Operaciones I",credits:6,sem:7},
+  {code:"IN1054C",name:"Administración y RRHH",credits:6,sem:7},
+  {code:"EC0002C",name:"Contabilidad y Finanzas",credits:6,sem:7},
+  {code:"ED0023C",name:"Inglés III",credits:6,sem:7},
+  // Semestre VIII
+  {code:"IN1095C",name:"Energía y Medioambiente",credits:6,sem:8},
+  {code:"IN1097C",name:"Gestión de Operaciones II",credits:6,sem:8},
+  {code:"IN1096C",name:"Plan Estratégico y Gest. de Neg.",credits:6,sem:8},
+  {code:"IN1010C",name:"Ingeniería Económica",credits:6,sem:8},
+  {code:"EC0005C",name:"Marketing Estratégico",credits:6,sem:8},
+  {code:"INT_SAB1",name:"Integración de Saberes",credits:5,sem:8},
+  // Semestre IX
+  {code:"IN1099C",name:"Gest. de Calidad, Product. y Mant.",credits:6,sem:9},
+  {code:"IN1100C",name:"Sist. de Apoyo Toma de Decis.",credits:6,sem:9},
+  {code:"IN1056C",name:"Formulación de Proyectos",credits:6,sem:9},
+  {code:"OPT1",name:"Optativo de Profundización",credits:5,sem:9},
+  {code:"IN1098C",name:"Práctica/PI Procesos Industriales",credits:5,sem:9},
+  // Semestre X
+  {code:"IN1102C",name:"PI Gestión de Operaciones",credits:8,sem:10},
+  {code:"IN1101C",name:"Control de Gestión",credits:6,sem:10},
+  {code:"DE0006C",name:"Legislación Empresarial",credits:5,sem:10},
+  {code:"OPT2",name:"Optativo de Profundización",credits:5,sem:10},
+  {code:"IN1103C",name:"Práctica/PI RRHH y Negocios",credits:5,sem:10},
+  // Semestre XI
+  {code:"IN1104C",name:"PI Evaluación Técnico/Económica",credits:8,sem:11},
+  {code:"OPT3",name:"Optativo de Profundización",credits:5,sem:11},
+  {code:"OPT4",name:"Optativo de Profundización",credits:5,sem:11},
+  {code:"OPT5",name:"Optativo de Profundización",credits:5,sem:11},
+  {code:"OPT6",name:"Optativo de Profundización",credits:5,sem:11},
+  {code:"INT_SAB2",name:"Integración de Saberes",credits:5,sem:11},
+  // Semestre XII
+  {code:"IN1105C",name:"Proyecto de Título",credits:30,sem:12},
+];
+
+const TOTAL_CREDITS = COURSES.reduce((s,c)=>s+c.credits,0); // 366
+const STORAGE_KEY = "malla_civil_industrial_progress";
+
+function loadPassed(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  }catch(e){ return new Set(); }
+}
+function savePassed(set){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([...set]));
+}
+
+let passedSet = loadPassed();
+
+function buildTicks(container, count){
+  container.innerHTML = "";
+  for(let i=0;i<count;i++){
+    const s = document.createElement("span");
+    container.appendChild(s);
+  }
+}
+
+function buildGrid(){
+  const grid = document.getElementById("malla-grid");
+  const roman = ["","I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"];
+  for(let sem=1; sem<=12; sem++){
+    const col = document.createElement("div");
+    col.className = "col";
+    const semCourses = COURSES.filter(c=>c.sem===sem);
+    const semCredits = semCourses.reduce((s,c)=>s+c.credits,0);
+    col.innerHTML = `<div class="col-head">SEM ${roman[sem]}<small>${semCredits} cr</small></div>`;
+    semCourses.forEach(course=>{
+      const card = document.createElement("div");
+      card.className = "card";
+      card.dataset.code = course.code;
+      card.innerHTML = `
+        <div class="stamp">Aprob.</div>
+        <div class="name">${course.name}</div>
+        <div class="foot">
+          <span class="code">${course.code}</span>
+          <span class="credits">${course.credits} cr</span>
+        </div>`;
+      card.addEventListener("click", ()=>toggleCourse(course.code));
+      col.appendChild(card);
+    });
+    grid.appendChild(col);
+  }
+}
+
+function updateUI(){
+  let totalCredits = 0;
+  document.querySelectorAll(".card").forEach(card=>{
+    const code = card.dataset.code;
+    if(passedSet.has(code)){
+      card.classList.add("passed");
+      const c = COURSES.find(x=>x.code===code);
+      if(c) totalCredits += c.credits;
+    } else {
+      card.classList.remove("passed");
+    }
+  });
+  document.getElementById("credits-count").textContent = `${totalCredits} / ${TOTAL_CREDITS}`;
+  const pct = Math.min(100, (totalCredits/TOTAL_CREDITS)*100);
+  const rounded = Math.round(pct);
+  document.getElementById("credits-bar").style.width = pct + "%";
+  document.getElementById("percent-bar").style.width = pct + "%";
+  document.getElementById("progress-percent").textContent = `${rounded}%`;
+}
+
+function toggleCourse(code){
+  if(passedSet.has(code)) passedSet.delete(code);
+  else passedSet.add(code);
+  savePassed(passedSet);
+  updateUI();
+}
+
+document.getElementById("reset").addEventListener("click", ()=>{
+  if(confirm("¿Reiniciar todo tu avance guardado?")){
+    passedSet = new Set();
+    savePassed(passedSet);
+    updateUI();
+  }
+});
+
+buildTicks(document.getElementById("credit-ticks"), 6);
+buildTicks(document.getElementById("percent-ticks"), 10);
+buildGrid();
+updateUI();
+</script>
+</body>
+</html>
